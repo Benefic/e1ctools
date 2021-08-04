@@ -1,5 +1,6 @@
 package ru.itmasterskaya.e1ctools
 
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.Intent
 import android.nfc.NdefMessage
@@ -18,6 +19,7 @@ class MainActivity : AppCompatActivity() {
     private var nfcAdapter: NfcAdapter? = null
     private lateinit var pendingIntent: PendingIntent
 
+    @SuppressLint("UnspecifiedImmutableFlag")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -34,7 +36,7 @@ class MainActivity : AppCompatActivity() {
             Intent(this, this.javaClass)
                 .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0
         )
-        Glide.with(this).load(R.drawable.loading).into(image);
+        Glide.with(this).load(R.drawable.loading).into(image)
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -59,7 +61,7 @@ class MainActivity : AppCompatActivity() {
         if (nfcAdapter != null) {
             if (!nfcAdapter!!.isEnabled)
                 showWirelessSettings()
-            nfcAdapter?.enableForegroundDispatch(this, pendingIntent, null, null);
+            nfcAdapter?.enableForegroundDispatch(this, pendingIntent, null, null)
         }
     }
 
@@ -93,34 +95,18 @@ class MainActivity : AppCompatActivity() {
                 }
                 resultIntent.putExtra(NFC_EXTRA_MESSAGES_KEY, parseMessages(msgs))
             }
-            val keyID = parseID(intent.getByteArrayExtra(NfcAdapter.EXTRA_ID))
+            val keyID = intent.getByteArrayExtra(NfcAdapter.EXTRA_ID)?.let { parseID(it) }
             resultIntent.putExtra(
                 NFC_EXTRA_KEY_ID,
                 keyID
             )
-            //Toast.makeText(this, keyID, Toast.LENGTH_LONG).show()
             finish()
-            //else {
-            //    Toast.makeText(this, "Ошибка чтения метки!", Toast.LENGTH_LONG).show()
-            //}
         }
     }
 
-   private fun parseID1(data: ByteArray?): String {
-        var result = ""
-        data?.forEach {
-            var sign = it.toUInt().toString(16).takeLast(2)
-            if (sign.length < 2) {
-                sign = "0$sign"
-            }
-            result += (if (result.isEmpty()) "" else ":") + sign
-        }
-        return result.toUpperCase()
-    }
-
-    private fun parseID(inarray: ByteArray): String {
+    private fun parseID(inArray: ByteArray): String {
         var i: Int
-        var `in`: Int
+        var input: Int
         val hex = arrayOf(
             "0",
             "1",
@@ -142,12 +128,12 @@ class MainActivity : AppCompatActivity() {
         var out = ""
 
 
-        var j: Int = 0
-        while (j < inarray.size) {
-            `in` = inarray[j].toInt() and 0xff
-            i = `in` shr 4 and 0x0f
+        var j = 0
+        while (j < inArray.size) {
+            input = inArray[j].toInt() and 0xff
+            i = input shr 4 and 0x0f
             out += hex[i]
-            i = `in` and 0x0f
+            i = input and 0x0f
             out += hex[i]
             ++j
         }
@@ -174,7 +160,6 @@ class MainActivity : AppCompatActivity() {
         private const val NFC_STOP_READ = 24
         private const val NFC_EXTRA_MESSAGES_KEY = "nfc_extra_messages_key"
         private const val NFC_EXTRA_KEY_ID = "nfc_extra_key_id"
-        private const val NFC_CLOSE_AFTER_READ = "nfc_close_after_read"
     }
 }
 
